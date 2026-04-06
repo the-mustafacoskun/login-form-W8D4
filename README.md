@@ -1,6 +1,4 @@
-Harika bir özet hazırlamışsın! Bu içeriği profesyonel bir GitHub README dosyası için İngilizceye (Localization) çevirdim. Teknik terimleri (hook, validation, E2E) sektör standartlarına uygun şekilde bıraktım.
 
-Aşağıdaki metni projenin README.md dosyasına ekleyebilirsin:
 
 🔐 React Login Form with Cypress E2E Testing
 This project is a technical study covering the development of a modern user login form using React, Reactstrap, and Vite, along with comprehensive End-to-End (E2E) testing using Cypress.
