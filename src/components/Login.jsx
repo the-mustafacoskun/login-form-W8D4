@@ -1,46 +1,139 @@
 import { Button, Form, FormGroup, Input, Label } from "reactstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { useEffect, useState } from "react";
+import { useHistory } from 'react-router-dom';
+import "../index.css"
+import axios from "axios";
+
+
+const initialValue = {
+    email: "",
+    password: "",
+    terms: false
+}
+
+const validateEmail = (email) => {
+    return String(email)
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+};
+
+const validatePassword = /.{4,}/;
+
+const errorMessages = {
+    email: "Please enter a valid email address.",
+    password: "Password must be at least 8 characters long and include an uppercase letter, a number, and a special character.",
+    terms: "You must accept the terms and conditions to proceed."
+};
 
 export default function Login() {
-    return (
-       <Form >
-      <FormGroup>
-        <Label for="exampleEmail">Email</Label>
-        <Input
-          id="exampleEmail"
-          name="email"
-          placeholder="Enter your email"
-          type="email"
-         
-        />
-      </FormGroup>
-      <FormGroup>
-        <Label for="examplePassword">Password</Label>
-        <Input
-          id="examplePassword"
-          name="password"
-          placeholder="Enter your password "
-          type="password"
-          
-        />
-      </FormGroup>
+    const [formData, setFormData] = useState(initialValue);
+    const [isValid, setIsValid] = useState(false);
+    const [errors, setErrors] = useState({
+        email: false,
+        password: false,
+        terms: false
+    });
+    const history = useHistory();
+    useEffect(() => {
+        if (validateEmail(formData.email) && formData.terms && validatePassword.test(formData.password)) {
+            setIsValid(true);
+        } else {
+            setIsValid(false);
+        }
+    }, [formData]);
 
-      <FormGroup check>
-        <Input
-          type="checkbox"
-          name="terms"
-          id="terms"
-          
-        />{' '}
-        <Label check htmlFor="terms">
-          I agree to terms of service and privacy policy
-        </Label>
-      </FormGroup>
-      <FormGroup className="text-center p-4">
-        <Button color="primary" >
-          Sign In
-        </Button>
-      </FormGroup>
-    </Form>
+    const handleChange = (event) => {
+        let { type, name, checked, value } = event.target;
+        value = type === "checkbox" ? checked : value;
+        setFormData({ ...formData, [name]: value });
+        if (name === "email") {
+            if (validateEmail(value)) {
+                setErrors({ ...errors, [name]: false });
+            } else {
+                setErrors({ ...errors, [name]: true })
+            }
+
+        }
+        if (name === "password") {
+            if (validatePassword.test(value)) {
+                setErrors({ ...errors, [name]: false });
+            } else {
+                setErrors({ ...errors, [name]: true });
+            }
+        }
+        if (name === "terms") {
+            setErrors({...errors,[name]:false})
+        } else {
+            setErrors({...errors,[name]:true})
+        }
+
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (!isValid) return;
+        axios.get('https://6540a96145bedb25bfc247b4.mockapi.io/api/login')
+            .then((response) => {
+                const user = response.data.find((item) =>
+                    item.password && item.email && item.password === formData.password && item.email === formData.email
+                );
+                if (user) {
+                    setFormData(initialValue);
+                    history.push('/Success')
+                }
+            });
+
+    };
+
+
+    return (
+        <Form onSubmit={handleSubmit}>
+            <FormGroup>
+                <Label for="email">Email</Label>
+                <Input
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    type="email"
+                    onChange={handleChange}
+                    value={formData.email}
+
+                />
+            </FormGroup>
+            <FormGroup>
+                <Label for="password">Password</Label>
+                <Input
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password "
+                    type="password"
+                    onChange={handleChange}
+                    value={formData.password}
+
+                />
+            </FormGroup>
+
+            <FormGroup check>
+                <Input
+                    type="checkbox"
+                    name="terms"
+                    id="terms"
+                    onChange={handleChange}
+                    checked={formData.terms}
+
+                />{' '}
+                <Label check htmlFor="terms">
+                    I agree to terms of service and privacy policy
+                </Label>
+            </FormGroup>
+            <FormGroup className="text-center p-4">
+                <Button color="primary" disabled={!isValid}>
+                    Sign In
+                </Button>
+            </FormGroup>
+        </Form>
     )
 }
